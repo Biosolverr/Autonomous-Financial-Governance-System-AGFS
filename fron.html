@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGFS - Autonomous Financial Governance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result.approved {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .result.rejected {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .result.pending {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .logs {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log-entry.success {
+            color: #28a745;
+        }
+        
+        .log-entry.error {
+            color: #dc3545;
+        }
+        
+        .log-entry.info {
+            color: #17a2b8;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AGFS - Autonomous Financial Governance System</h1>
+            <p>AI-Powered Risk Assessment & Multi-Agent Consensus</p>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>📝 Transaction Intent</h2>
+                <div class="input-group">
+                    <label>User Address</label>
+                    <input type="text" id="user_address" placeholder="0x123..." value="0xUser123">
+                </div>
+                <div class="input-group">
+                    <label>Amount (USD)</label>
+                    <input type="number" id="amount" placeholder="Amount" value="500">
+                </div>
+                <div class="input-group">
+                    <label>Recipient Address</label>
+                    <input type="text" id="recipient" placeholder="0xABC..." value="0xRecipient456">
+                </div>
+                <div class="input-group">
+                    <label>Intent Description</label>
+                    <textarea id="intent_text" placeholder="Describe the transaction intent...">Pay monthly service invoice</textarea>
+                </div>
+                <button onclick="submitTransaction()">🚀 Submit for Governance</button>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Governance Decision</h2>
+                <div id="result" class="result"></div>
+                
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="total_tx">0</div>
+                        <div class="metric-label">Total Transactions</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="approval_rate">0%</div>
+                        <div class="metric-label">Approval Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📜 Governance Logs</h2>
+            <div id="logs" class="logs">
+                <div class="log-entry info">🟢 System ready. AGFS multi-agent consensus active.</div>
+                <div class="log-entry info">🧠 Agents: RiskAI | FraudDetect | ComplianceGuard</div>
+            </div>
+            <button onclick="clearLogs()" style="margin-top: 10px; background: #6c757d;">Clear Logs</button>
+        </div>
+    </div>
+    
+    <script>
+        let transactionCount = 0;
+        let approvedCount = 0;
+        
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+            
+            // Keep only last 50 logs
+            while (logsDiv.children.length > 50) {
+                logsDiv.removeChild(logsDiv.lastChild);
+            }
+        }
+        
+        async function submitTransaction() {
+            const user_address = document.getElementById('user_address').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const recipient = document.getElementById('recipient').value;
+            const intent_text = document.getElementById('intent_text').value;
+            
+            if (!user_address || !amount || !recipient || !intent_text) {
+                addLog('❌ Please fill all fields', 'error');
+                return;
+            }
+            
+            addLog(`📤 Submitting transaction: ${intent_text.substring(0, 50)}...`, 'info');
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result pending show';
+            resultDiv.innerHTML = '<strong>🔄 Processing...</strong><br>Risk analysis in progress...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_address: user_address,
+                        amount: amount,
+                        recipient: recipient,
+                        intent_text: intent_text
+                    })
+                });
+                
+                const data = await response.json();
+                
+                transactionCount++;
+                if (data.approved) approvedCount++;
+                
+                updateMetrics();
+                
+                const statusClass = data.approved ? 'approved' : 'rejected';
+                resultDiv.className = `result ${statusClass} show`;
+                
+                const riskPercent = (data.risk_score * 100).toFixed(1);
+                const riskColor = data.risk_score < 0.3 ? '#28a745' : (data.risk_score < 0.6 ? '#ffc107' : '#dc3545');
+                
+                resultDiv.innerHTML = `
+                    <strong>${data.approved ? '✅ APPROVED' : '❌ REJECTED'}</strong><br>
+                    <strong>Risk Score:</strong> <span style="color: ${riskColor}">${riskPercent}%</span><br>
+                    <strong>Status:</strong> ${data.status}<br>
+                    <strong>Reason:</strong> ${data.reason}<br>
+                    ${data.reason.includes('Tx:') ? '<span class="status-badge" style="background:#28a745;color:white;">🔗 Transaction Executed</span>' : '<span class="status-badge" style="background:#dc3545;color:white;">⚠️ Transaction Blocked</span>'}
+                `;
+                
+                addLog(`${data.approved ? '✅ APPROVED' : '❌ REJECTED'} | Risk: ${riskPercent}% | ${data.reason.substring(0, 100)}`, data.approved ? 'success' : 'error');
+                
+                // Log agent decisions
+                addLog(`🧠 Risk Score: ${riskPercent}%`, 'info');
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                resultDiv.className = 'result rejected show';
+                resultDiv.innerHTML = `<strong>⚠️ Connection Error</strong><br>Make sure the AGFS server is running on port 8000<br><small>${error.message}</small>`;
+            }
+        }
+        
+        function updateMetrics() {
+            document.getElementById('total_tx').textContent = transactionCount;
+            const approvalRate = transactionCount === 0 ? 0 : ((approvedCount / transactionCount) * 100).toFixed(1);
+            document.getElementById('approval_rate').textContent = `${approvalRate}%`;
+        }
+        
+        function clearLogs() {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML = `
+                <div class="log-entry info">🟢 System ready. AGFS multi-agent consensus active.</div>
+                <div class="log-entry info">🧠 Agents: RiskAI | FraudDetect | ComplianceGuard</div>
+                <div class="log-entry info">📊 Logs cleared at ${new Date().toLocaleTimeString()}</div>
+            `;
+            addLog('Logs cleared by user', 'info');
+        }
+        
+        // Test connection on load
+        async function testConnection() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                if (response.ok) {
+                    addLog('✅ Server connection established', 'success');
+                } else {
+                    addLog('⚠️ Server responded but with error', 'error');
+                }
+            } catch (error) {
+                addLog('⚠️ Server not running. Start with: py orchestrator\\main.py', 'error');
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
