@@ -261,7 +261,9 @@
     const dot  = document.getElementById('conn-dot');
     const text = document.getElementById('conn-text');
     try {
-      const r = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(8000) });
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const r = await fetch(`${API_BASE}/health`, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
       if (r.ok) {
         dot.className  = 'ok';
         text.textContent = '✅ Backend connected';
@@ -303,7 +305,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_address, amount, recipient, intent_text }),
-        signal: AbortSignal.timeout(30000),
+        signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 30000); return c.signal; })(),
       });
 
       if (!res.ok) {
