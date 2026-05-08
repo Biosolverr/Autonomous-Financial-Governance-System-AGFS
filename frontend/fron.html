@@ -264,6 +264,9 @@
     </div>
     
     <script>
+        // ==== БАЗОВЫЙ URL БЭКЕНДА (RAILWAY) ====
+        const API_BASE = 'https://autonomous-financial-governance-system-agfs-production.up.railway.app';
+        
         let transactionCount = 0;
         let approvedCount = 0;
         
@@ -299,7 +302,7 @@
             resultDiv.innerHTML = '<strong>🔄 Processing...</strong><br>Risk analysis in progress...';
             
             try {
-                const response = await fetch('http://localhost:8000/intent', {
+                const response = await fetch(`${API_BASE}/intent`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -361,17 +364,17 @@
             addLog('Logs cleared by user', 'info');
         }
         
-        // Test connection on load
+        // Test connection on load (через Railway API)
         async function testConnection() {
             try {
-                const response = await fetch('http://localhost:8000/health');
+                const response = await fetch(`${API_BASE}/health`);
                 if (response.ok) {
-                    addLog('✅ Server connection established', 'success');
+                    addLog('✅ Server connection established (Railway)', 'success');
                 } else {
                     addLog('⚠️ Server responded but with error', 'error');
                 }
             } catch (error) {
-                addLog('⚠️ Server not running. Start with: py orchestrator\\main.py', 'error');
+                addLog('⚠️ Cannot connect to Railway backend. Check API_BASE variable.', 'error');
             }
         }
         
