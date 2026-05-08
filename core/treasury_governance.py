@@ -36,7 +36,6 @@ class TreasuryGovernance:
                     "reason": reason,
                 }
             else:
-                # Simulated execution — GenLayer not configured
                 return {
                     "tx_hash": f"0x{os.urandom(20).hex()}",
                     "status": "simulated",
