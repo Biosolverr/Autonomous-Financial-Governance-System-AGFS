@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "py orchestrator/main.py",
+    "startCommand": "python orchestrator/main.py",
     "restartPolicyType": "ON_FAILURE"
   }
 }
