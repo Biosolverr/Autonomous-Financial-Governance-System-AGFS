@@ -236,7 +236,7 @@
     // If the page is served from a real host (not file://) and it's NOT
     // a static CDN / Vercel domain, assume same-origin FastAPI.
     const host = location.hostname;
-    if (host && host !== 'localhost' && !host.endsWith('.vercel.app') && !host.endsWith('.github.io')) {
+    if (host && host !== 'localhost' && !host.endsWith('.vercel.app') && !host.endsWith('.github.io') && !host.endsWith('.netlify.app')) {
       return location.origin;
     }
     return RAILWAY_URL;
