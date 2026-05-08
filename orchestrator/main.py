@@ -22,7 +22,7 @@ app = FastAPI(
     description="Autonomous Financial Governance System"
 )
 
-# CORS FIX
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -39,17 +39,28 @@ class IntentRequest(BaseModel):
     recipient: str
     intent_text: str
 
+
 class IntentResponse(BaseModel):
     status: str
     risk_score: float
     approved: bool
     reason: str
 
+
 @app.get("/")
 async def root():
     return {
         "status": "AGFS backend running"
     }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "agents": ["risk", "fraud", "compliance"]
+    }
+
 
 @app.post("/intent", response_model=IntentResponse)
 async def process_intent(req: IntentRequest):
@@ -76,6 +87,7 @@ async def process_intent(req: IntentRequest):
     ]
 
     consensus = MockConsensus()
+
     consensus_result = consensus.run(
         votes,
         risk_result.get("score", 0.5)
@@ -84,6 +96,7 @@ async def process_intent(req: IntentRequest):
     approved = consensus_result.decision == "approve"
 
     if approved:
+
         treasury = TreasuryGovernance()
 
         tx_result = treasury.execute_transfer(
@@ -100,27 +113,10 @@ async def process_intent(req: IntentRequest):
         )
 
     else:
+
         return IntentResponse(
             status="rejected",
             risk_score=risk_result.get("score", 0.5),
             approved=False,
             reason=f"Consensus: {consensus_result.decision}. Risk: {risk_result.get('reasoning', 'High risk')}"
         )
-
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "agents": ["risk", "fraud", "compliance"]
-    }
-
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 8000))
-
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port
-    )
