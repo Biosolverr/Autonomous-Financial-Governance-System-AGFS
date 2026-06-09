@@ -1,0 +1,154 @@
+{
+  "contract": "AGFS — Autonomous Financial Governance System",
+  "contract_file": "contracts/agfs.py",
+  "network": "GenLayer Testnet",
+  "total_intents": 6,
+  "all_finalized": true,
+  "summary": {
+    "APPROVED": 4,
+    "REJECTED": 2
+  },
+  "transactions": [
+    {
+      "intent_id": "0",
+      "tx_hash": "0xb85872519538b5fff82f8e21dde4051b2fea299e0fb341a023c976c94cfd4475",
+      "status": "FINALIZED",
+      "result": "SUCCESS",
+      "verdict": "APPROVED",
+      "input": {
+        "recipient": "0xA1B2C3D4E5F6789012345678901234567890ABCD",
+        "amount": "500",
+        "intent_text": "Monthly salary payment to contractor John Smith"
+      },
+      "stored_value": "0xA1B2C3D4E5F6789012345678901234567890ABCD|500|APPROVED|Monthly salary payment to contractor John Smith",
+      "equivalence_principle": "APPROVED",
+      "validators": [
+        { "address": "0xAAAB68ee145F2aD848325175Daa14C36f5B2115c", "model": "openrouter/anthropic/claude-sonnet-4.6", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x3F2fb504260aC4b197ccfB50fc7AB05E07FC8e88", "model": "openrouter/anthropic/claude-sonnet-4.6", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x13114432D051FFD4b8bc20d5CC70A76c4A3a676a", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0xc6B75a7C9CC11c2bF0111c5E6ab4357b26334E05", "model": "openrouter/qwen/qwen3.6-plus", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x377014A182cF49e183E3BBd1F9e175b26Bd6d711", "model": "openrouter/openai/gpt-5.4", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    },
+    {
+      "intent_id": "1",
+      "tx_hash": "0xd4a2b78bbb83a94cc5e5c8747efdc4d6c8f6e7402f577364264e0f895df3471d",
+      "status": "FINALIZED",
+      "result": "SUCCESS",
+      "verdict": "REJECTED",
+      "input": {
+        "recipient": "0x000000000000000000000000000000000000dEaD",
+        "amount": "9999",
+        "intent_text": "urgent transfer no questions"
+      },
+      "stored_value": "0x000000000000000000000000000000000000dEaD|9999|REJECTED|urgent transfer no questions",
+      "equivalence_principle": "REJECTED",
+      "validators": [
+        { "address": "0x5d8186fd5214c193dB48Ce2d39761E862aBb567E", "model": "openrouter/deepseek/deepseek-v4-pro", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x18db8A0106910726C49179C7C230133C25c4CD2b", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0xCDD1f1f67B791aA5296c493674AB44A5CDF07873", "model": "openrouter/z-ai/glm-5.1", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x128EABe28212e32856aF68ed6Ead57576ED8E170", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0x4b26e4C555f70C280912E97ed901dA55758d5255", "model": "openrouter/moonshotai/kimi-k2.6", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    },
+    {
+      "intent_id": "2",
+      "tx_hash": "0xfd291634bd0aa49a83e98cd6e771a47714ad35d69390443aafd135cd6f8bc91d",
+      "status": "FINALIZED",
+      "result": "SUCCESS",
+      "verdict": "APPROVED",
+      "input": {
+        "recipient": "0xDEF1234567890ABCDef1234567890abcdef1234",
+        "amount": "50000",
+        "intent_text": "Q4 vendor payment to AWS for cloud infrastructure services invoice #INV-2024-447"
+      },
+      "stored_value": "0xDEF1234567890ABCDef1234567890abcdef1234|50000|APPROVED|Q4 vendor payment to AWS for cloud infrastructure services invoice #INV-2024-447",
+      "equivalence_principle": "APPROVED",
+      "validators": [
+        { "address": "0x96DB7731E3e98fa12Af53a20CB1D21F0856B3293", "model": "openrouter/mistralai/mistral-medium-3-5", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x8223D877bd0c0c25a88D55960230282047b99029", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0xA7c2bfe4198B14D5bD324505b46b2A2C1707af4f", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0xC6D4624251A82b9e5410b56578C88f6010f7231d", "model": "openrouter/deepseek/deepseek-v4-pro", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x82640d7da6B91de501E8Ca4e009F774A8C460DcD", "model": "openrouter/google/gemini-3-flash-preview", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    },
+    {
+      "intent_id": "3",
+      "tx_hash": "0x99b766415870edede2dec4b282f382a3ac45b804c9717bb1c8f810a71385a620",
+      "status": "FINALIZED",
+      "result": "SUCCESS",
+      "verdict": "APPROVED",
+      "input": {
+        "recipient": "0x742d35Cc6634C0532925a3b8D4C9B7F3d2E1A890",
+        "amount": "150",
+        "intent_text": "Office supplies reimbursement for employee ID 4821"
+      },
+      "stored_value": "0x742d35Cc6634C0532925a3b8D4C9B7F3d2E1A890|150|APPROVED|Office supplies reimbursement for employee ID 4821",
+      "equivalence_principle": "APPROVED",
+      "validators": [
+        { "address": "0xAAAB68ee145F2aD848325175Daa14C36f5B2115c", "model": "openrouter/anthropic/claude-sonnet-4.6", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xb12062a2cc191212998aEC16b4A21A65B0fA404c", "model": "openrouter/z-ai/glm-5.1", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xC58677432083E5AA8600A5BA94898EfA615dBA43", "model": "openrouter/z-ai/glm-5.1", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xfA386a9924c5dCbEA112ACc4b2047866c68dc104", "model": "openrouter/xiaomi/mimo-v2.5-pro", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xC6D4624251A82b9e5410b56578C88f6010f7231d", "model": "openrouter/deepseek/deepseek-v4-pro", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    },
+    {
+      "intent_id": "4",
+      "tx_hash": "0x0cc619e20e7695bbadc7a8a9b310de770fcdf70e9a81c36b27ffa0f2072550f5",
+      "status": "ACCEPTED",
+      "result": "SUCCESS",
+      "verdict": "REJECTED",
+      "input": {
+        "recipient": "0x0000000000000000000000000000000000000000",
+        "amount": "8888",
+        "intent_text": "send all funds now no receipt needed"
+      },
+      "stored_value": "0x0000000000000000000000000000000000000000|8888|REJECTED|send all funds now no receipt needed",
+      "equivalence_principle": "REJECTED",
+      "validators": [
+        { "address": "0x612EF242E55E6BAf62A4699c1709969E2c625a95", "model": "openrouter/deepseek/deepseek-v4-pro", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x8635a8e94F1438FbCb873E88B71d3f2Eb6eA74cD", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0x8c47DDbfF08d716Ac9Ebdc8109B003C40230b0B8", "model": "openrouter/openai/gpt-5.4", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x12893737f104CdDA722b461E51e88772816F6155", "model": "openrouter/z-ai/glm-5.1", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xb5A91c7239B1F65375F0Bc8C6F272b3964Be58cf", "model": "openrouter/google/gemini-3-flash-preview", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    },
+    {
+      "intent_id": "5",
+      "tx_hash": "0x83bf7be61000c1b4a94075680de284357d4e4872be897e8432f50182cf3f1bb2",
+      "status": "ACCEPTED",
+      "result": "SUCCESS",
+      "verdict": "APPROVED",
+      "input": {
+        "recipient": "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
+        "amount": "25000",
+        "intent_text": "Annual software license renewal for Salesforce CRM platform contract #SF-2024-ENT"
+      },
+      "stored_value": "0xB8c77482e45F1F44dE1745F52C74426C631bDD52|25000|APPROVED|Annual software license renewal for Salesforce CRM platform contract #SF-2024-ENT",
+      "equivalence_principle": "APPROVED",
+      "validators": [
+        { "address": "0x829b3Ba4b3F105FD769dc5cdF8E9d3F1257CACbC", "model": "openrouter/openai/gpt-5.4", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0xb9510d7C401DB04781C25756D5fA998ea7E0aab3", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0x0e4f4ab72a2F78CB6D653e013479B486A198F4e4", "model": null, "result": "ERROR", "vote": "Idle — cancelled after quorum" },
+        { "address": "0x316254B265479347CAae4847723d4441786B13bd", "model": "openrouter/z-ai/glm-5.1", "result": "SUCCESS", "vote": "Agree" },
+        { "address": "0x4d2D27b0e2aa0A926D605a069F5Ab2F1C24747DA", "model": "openrouter/qwen/qwen3.6-plus", "result": "SUCCESS", "vote": "Agree" }
+      ]
+    }
+  ],
+  "final_state": {
+    "get_count": 6,
+    "storage_format": "recipient|amount|STATUS|intent_text"
+  },
+  "validator_models_seen": [
+    "openrouter/anthropic/claude-sonnet-4.6",
+    "openrouter/deepseek/deepseek-v4-pro",
+    "openrouter/openai/gpt-5.4",
+    "openrouter/google/gemini-3-flash-preview",
+    "openrouter/z-ai/glm-5.1",
+    "openrouter/qwen/qwen3.6-plus",
+    "openrouter/mistralai/mistral-medium-3-5",
+    "openrouter/moonshotai/kimi-k2.6",
+    "openrouter/xiaomi/mimo-v2.5-pro"
+  ]
+}
