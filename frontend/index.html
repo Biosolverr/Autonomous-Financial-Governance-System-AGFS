@@ -79,7 +79,6 @@
     .explorer-link:hover { background: #2a2a4e; }
     .explorer-link::before { content: "🔗 "; }
 
-    /* Single consensus verdict card */
     #verdict { display: none; margin-top: 14px; }
     #verdict.show { display: block; }
     .verdict-card {
@@ -250,8 +249,10 @@ window.submitIntent = async function () {
   clearVerdict();
   log(`📤 $${amount} → ${recipient} | "${intent.slice(0,50)}"`, "info");
 
+  let txHash;
   try {
-    const txHash = await client.writeContract({
+    // 1) Send transaction
+    txHash = await client.writeContract({
       address: CONTRACT_ADDRESS,
       functionName: "evaluate_intent",
       args: [recipient, amount, intent],
@@ -260,26 +261,47 @@ window.submitIntent = async function () {
     log(`🔗 Tx sent: <a href="${explorerUrl}" target="_blank">${txHash}</a>`, "info");
 
     showResult("pending",
-      '<div class="result-title">⏳ Awaiting finality…</div>' +
+      '<div class="result-title">⏳ Awaiting consensus…</div>' +
       `<a class="explorer-link" href="${explorerUrl}" target="_blank">${txHash}</a>` +
-      "<p style='margin-top:8px'>GenLayer validator nodes are independently re-executing the governance evaluation and reaching consensus via Optimistic Democracy.</p>"
+      "<p style='margin-top:8px'>GenLayer validator nodes are independently re-executing the governance evaluation. This may take 30–90 seconds.</p>"
     );
 
-    // FIX: increased timeout + interval so studionet consensus can finish
-    await client.waitForTransactionReceipt({
-      hash: txHash,
-      status: "FINALIZED",
-      timeout: 180_000,   // 3 minutes
-      interval: 3_000,    // poll every 3 seconds
-    });
-    log("✅ Tx finalised.", "success");
-
-    const count    = await client.readContract({
+    // 2) Poll on-chain data directly instead of relying on waitForTransactionReceipt
+    //    get_count only increases AFTER the transaction is finalized and stored.
+    const initialCount = Number(await client.readContract({
       address: CONTRACT_ADDRESS, functionName: "get_count", args: [],
-    });
-    const intentId = String(Number(count) - 1);
+    }));
+    log(`📊 Initial on-chain count: ${initialCount}`, "info");
 
-    const raw    = await client.readContract({
+    let currentCount = initialCount;
+    let elapsed = 0;
+    const MAX_WAIT = 300_000;   // 5 minutes max
+    const POLL_EVERY = 4_000;   // check every 4 seconds
+
+    while (currentCount === initialCount && elapsed < MAX_WAIT) {
+      await new Promise(r => setTimeout(r, POLL_EVERY));
+      elapsed += POLL_EVERY;
+      try {
+        currentCount = Number(await client.readContract({
+          address: CONTRACT_ADDRESS, functionName: "get_count", args: [],
+        }));
+      } catch (readErr) {
+        // ignore transient read errors during consensus
+      }
+      if (elapsed % 20_000 === 0) {
+        log(`⏳ Still waiting… (${elapsed/1000}s elapsed)`, "info");
+      }
+    }
+
+    if (currentCount === initialCount) {
+      throw new Error("Transaction did not appear on-chain within 5 minutes. Check explorer.");
+    }
+
+    log("✅ New intent recorded on-chain.", "success");
+
+    // 3) Read the newly stored intent
+    const intentId = String(currentCount - 1);
+    const raw = await client.readContract({
       address: CONTRACT_ADDRESS, functionName: "get_intent", args: [intentId],
     });
     const stored = JSON.parse(raw);
@@ -299,7 +321,7 @@ window.submitIntent = async function () {
 
     sessionTotal++;
     if (approved) sessionApproved++;
-    document.getElementById("m-total").textContent = String(count);
+    document.getElementById("m-total").textContent = String(currentCount);
     document.getElementById("m-rate").textContent =
       `${Math.round((sessionApproved / sessionTotal) * 100)}%`;
 
