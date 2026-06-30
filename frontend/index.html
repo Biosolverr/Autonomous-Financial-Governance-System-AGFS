@@ -210,7 +210,6 @@ async function pingContract() {
   const addr = document.getElementById("status-addr");
 
   try {
-    await client.initializeConsensusSmartContract();
     const count = await client.readContract({
       address: CONTRACT_ADDRESS,
       functionName: "get_count",
@@ -266,7 +265,13 @@ window.submitIntent = async function () {
       "<p style='margin-top:8px'>GenLayer validator nodes are independently re-executing the governance evaluation and reaching consensus via Optimistic Democracy.</p>"
     );
 
-    await client.waitForTransactionReceipt({ hash: txHash, status: "FINALIZED" });
+    // FIX: increased timeout + interval so studionet consensus can finish
+    await client.waitForTransactionReceipt({
+      hash: txHash,
+      status: "FINALIZED",
+      timeout: 180_000,   // 3 minutes
+      interval: 3_000,    // poll every 3 seconds
+    });
     log("✅ Tx finalised.", "success");
 
     const count    = await client.readContract({
