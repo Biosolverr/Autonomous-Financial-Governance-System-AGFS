@@ -135,10 +135,6 @@
     <div class="card">
       <h2>📝 Transaction Intent</h2>
       <div class="field">
-        <label>Sender Address</label>
-        <input id="sender" value="0x29293939393939393939393939393939393939Ab" />
-      </div>
-      <div class="field">
         <label>Amount (USD)</label>
         <input id="amount" type="number" value="500" min="0" />
       </div>
@@ -187,15 +183,25 @@
 const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS_HERE";
 const EXPLORER_BASE = "https://explorer-studio.genlayer.com/tx/";
 
-import { createClient, studionet } from "https://esm.sh/genlayer-js@latest";
+import { createClient, createAccount } from "https://esm.sh/genlayer-js@latest";
+import { studionet } from "https://esm.sh/genlayer-js@latest/chains";
 
-const client = createClient({ network: studionet });
+let account;
+let client;
+
+try {
+  account = createAccount();
+  client = createClient({ chain: studionet, account });
+} catch (e) {
+  log(`❌ Failed to init client: ${e.message}`, "error");
+}
 
 let sessionTotal = 0;
 let sessionApproved = 0;
 
 log("🤖 AGFS loaded.", "info");
 log(`🔗 Contract: ${CONTRACT_ADDRESS}`, "info");
+log(`👛 Session account: ${account ? account.address : "init failed"}`, "info");
 pingContract();
 
 async function pingContract() {
@@ -204,6 +210,7 @@ async function pingContract() {
   const addr = document.getElementById("status-addr");
 
   try {
+    await client.initializeConsensusSmartContract();
     const count = await client.readContract({
       address: CONTRACT_ADDRESS,
       functionName: "get_count",
@@ -223,13 +230,15 @@ async function pingContract() {
 }
 
 window.submitIntent = async function () {
-  const sender    = document.getElementById("sender").value.trim();
   const amount    = document.getElementById("amount").value.trim();
   const recipient = document.getElementById("recipient").value.trim();
   const intent    = document.getElementById("intent").value.trim();
 
-  if (!sender || !amount || !recipient || !intent) {
+  if (!amount || !recipient || !intent) {
     log("❌ Fill all fields.", "error"); return;
+  }
+  if (!client) {
+    log("❌ GenLayer client not ready.", "error"); return;
   }
 
   const btn = document.getElementById("submit-btn");
@@ -247,7 +256,6 @@ window.submitIntent = async function () {
       address: CONTRACT_ADDRESS,
       functionName: "evaluate_intent",
       args: [recipient, amount, intent],
-      account: sender,
     });
     const explorerUrl = EXPLORER_BASE + txHash;
     log(`🔗 Tx sent: <a href="${explorerUrl}" target="_blank">${txHash}</a>`, "info");
@@ -258,7 +266,7 @@ window.submitIntent = async function () {
       "<p style='margin-top:8px'>GenLayer validator nodes are independently re-executing the governance evaluation and reaching consensus via Optimistic Democracy.</p>"
     );
 
-    await client.waitForTransactionReceipt({ hash: txHash });
+    await client.waitForTransactionReceipt({ hash: txHash, status: "FINALIZED" });
     log("✅ Tx finalised.", "success");
 
     const count    = await client.readContract({
@@ -339,7 +347,7 @@ function clearVerdict() {
   w.innerHTML = ""; w.className = "";
 }
 
-window.log = function(msg, type = "info") {
+function log(msg, type = "info") {
   const el = document.createElement("div");
   el.className = `log-entry ${type}`;
   el.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
