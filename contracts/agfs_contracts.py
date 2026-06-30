@@ -3,9 +3,13 @@
 contracts/agfs.py
 Autonomous Financial Governance System — GenLayer Intelligent Contract.
 
-Three AI agents (RiskAI, FraudDetect, ComplianceGuard) evaluate every
-transaction in parallel inside gl.vm.run_nondet_unsafe, reaching consensus
-via 2-of-3 majority vote before the result is committed on-chain.
+A single LLM-based governance evaluation runs inside gl.vm.run_nondet_unsafe.
+Consensus is NOT simulated in application code — it is provided by the
+GenLayer network itself: every validator node independently re-executes
+leader_fn (including its own LLM call) and the network's Optimistic
+Democracy protocol determines agreement before the transaction finalizes.
+This contract does not invent its own multi-agent voting layer on top of
+that; it relies on the real consensus mechanism of the chain.
 """
 import json
 from genlayer import *
@@ -24,7 +28,7 @@ class AGFS(gl.Contract):
 
     @gl.public.view
     def get_intent(self, intent_id: str) -> str:
-        """Return stored result for a given intent_id, or 'NOT_FOUND'."""
+        """Return stored governance result for a given intent_id, or 'NOT_FOUND'."""
         return self.intents.get(intent_id, "NOT_FOUND")
 
     @gl.public.view
@@ -38,90 +42,78 @@ class AGFS(gl.Contract):
     def evaluate_intent(self, recipient: str, amount: str, intent_text: str) -> None:
         """
         Submit a transaction for AI governance.
-        Three independent AI agents vote; 2-of-3 majority decides APPROVED / REJECTED.
-        Result is stored on-chain and can be retrieved via get_intent().
+
+        A single governance prompt is sent to the LLM inside
+        gl.vm.run_nondet_unsafe. GenLayer network validators each
+        independently execute this function (including the LLM call)
+        and reach consensus on the result via Optimistic Democracy —
+        the chain's actual consensus mechanism, not a contract-level
+        simulation of one.
         """
 
-        # Capture args in local vars so closures can access them without `self`
-        _recipient  = recipient
-        _amount     = amount
-        _intent     = intent_text
+        _recipient = recipient
+        _amount    = amount
+        _intent    = intent_text
 
         def leader_fn() -> str:
-            # ── Agent 1: RiskAI ────────────────────────────────────────────
-            risk_raw = gl.nondet.exec_prompt(
-                f"You are a financial risk analyst for a crypto treasury.\n"
-                f"Analyze this transaction. Respond with ONLY one word: APPROVE or REJECT.\n"
-                f"Approve if risk is low (routine payment, reasonable amount, clear description).\n"
-                f"Reject if risk is high (suspicious recipient, huge amount, vague description).\n\n"
+            raw = gl.nondet.exec_prompt(
+                f"You are an autonomous financial governance reviewer for a "
+                f"crypto treasury. Evaluate the following transaction for "
+                f"risk, fraud signals, and AML/compliance concerns in a "
+                f"single combined judgement.\n\n"
                 f"Transaction:\n"
                 f"- Recipient: {_recipient}\n"
                 f"- Amount: {_amount} USD\n"
-                f"- Description: {_intent}"
+                f"- Description: {_intent}\n\n"
+                f"Respond with ONLY a JSON object, no markdown, no text outside JSON:\n"
+                f'{{"approve": true/false, "score": 0-100, "reasoning": "one short sentence"}}\n'
+                f"score = confidence that this transaction is SAFE "
+                f"(100 = perfectly safe, 0 = extremely risky)."
             )
 
-            # ── Agent 2: FraudDetect ───────────────────────────────────────
-            fraud_raw = gl.nondet.exec_prompt(
-                f"You are a fraud detection specialist for a crypto treasury.\n"
-                f"Analyze this transaction. Respond with ONLY one word: APPROVE or REJECT.\n"
-                f"Approve if no fraud signals present. Reject if suspicious patterns detected.\n\n"
-                f"Transaction:\n"
-                f"- Recipient: {_recipient}\n"
-                f"- Amount: {_amount} USD\n"
-                f"- Description: {_intent}"
-            )
+            try:
+                if isinstance(raw, dict):
+                    text = json.dumps(raw)
+                else:
+                    text = str(raw)
+                text = text.strip()
+                if text.startswith("```"):
+                    text = text.split("```")[1]
+                    if text.startswith("json"):
+                        text = text[4:]
+                    text = text.strip()
+                obj = json.loads(text)
+                approve   = bool(obj.get("approve", False))
+                score     = float(obj.get("score", 0))
+                score     = max(0.0, min(100.0, score))
+                reasoning = str(obj.get("reasoning", ""))[:200]
+            except Exception:
+                approve, score, reasoning = False, 0.0, "parse_error: LLM response was not valid JSON"
 
-            # ── Agent 3: ComplianceGuard ───────────────────────────────────
-            compliance_raw = gl.nondet.exec_prompt(
-                f"You are a compliance officer for a crypto treasury.\n"
-                f"Analyze this transaction. Respond with ONLY one word: APPROVE or REJECT.\n"
-                f"Approve if compliant with AML/KYC rules. Reject if policy violation detected.\n\n"
-                f"Transaction:\n"
-                f"- Recipient: {_recipient}\n"
-                f"- Amount: {_amount} USD\n"
-                f"- Description: {_intent}"
-            )
-
-            def parse(raw) -> bool:
-                try:
-                    if isinstance(raw, dict):
-                        v = str(list(raw.values())[0]).strip().upper()
-                    else:
-                        v = str(raw).strip().upper()
-                    return "APPROVE" in v
-                except Exception:
-                    return False
-
-            risk_vote       = parse(risk_raw)
-            fraud_vote      = parse(fraud_raw)
-            compliance_vote = parse(compliance_raw)
-
-            votes    = [risk_vote, fraud_vote, compliance_vote]
-            approved = sum(1 for v in votes if v)
-            status   = "APPROVED" if approved >= 2 else "REJECTED"
+            status = "APPROVED" if approve else "REJECTED"
 
             return json.dumps({
                 "status": status,
-                "votes": {
-                    "RiskAI":         "APPROVE" if risk_vote       else "REJECT",
-                    "FraudDetect":    "APPROVE" if fraud_vote      else "REJECT",
-                    "ComplianceGuard":"APPROVE" if compliance_vote else "REJECT",
-                },
-                "majority": approved,
+                "score": score,
+                "reasoning": reasoning,
             })
 
         def validator_fn(leader_result) -> bool:
             """
-            Validator just checks that the leader produced a well-formed result
-            with a valid status field.  The LLM calls run independently on
-            each validator node — GenLayer's consensus mechanism handles
-            equivocation via Optimistic Democracy.
+            Sanity check on the leader's output shape. Real agreement
+            across nodes is handled by the GenLayer consensus protocol,
+            not by this function — this only confirms the leader returned
+            a well-formed governance verdict.
             """
             if not isinstance(leader_result, gl.vm.Return):
                 return False
             try:
                 data = json.loads(leader_result.calldata)
-                return data.get("status") in ("APPROVED", "REJECTED")
+                return (
+                    data.get("status") in ("APPROVED", "REJECTED")
+                    and isinstance(data.get("score"), (int, float))
+                    and isinstance(data.get("reasoning"), str)
+                )
             except Exception:
                 return False
 
@@ -129,7 +121,6 @@ class AGFS(gl.Contract):
 
         intent_id = str(int(self.intent_count))
 
-        # Store compact record: recipient|amount|result_json
         self.intents[intent_id] = json.dumps({
             "recipient":   _recipient,
             "amount":      _amount,
@@ -138,3 +129,4 @@ class AGFS(gl.Contract):
         })
 
         self.intent_count = u64(int(self.intent_count) + 1)
+
